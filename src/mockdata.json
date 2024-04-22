@@ -1,0 +1,21 @@
+{
+  "user": {
+    "name": ""
+  },
+  "layout": [
+    {
+      "component": "App",
+      "widgetIds": [
+        1
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": 1,
+      "type": "text",
+      "area": "header",
+      "content": "Move forward in life"
+    }
+  ]
+}
