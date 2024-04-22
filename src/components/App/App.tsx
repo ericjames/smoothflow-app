@@ -27,26 +27,30 @@ const StyledApp = styled.div`
   background: ${(props) => props.theme.bg};
 `;
 
+const Debug = styled.div`
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 200px;
+  width: 500px;
+  overflow-wrap: break-word;
+  color: ${(props) => props.theme.text};
+`;
+
 const App = () => {
   const { userProfile, setNewDataStore, sessionStore } = useDataStore();
   const [appLayouts, setAppLayouts] = useState<Layouts | null>(null);
 
+  // Upon loading of a successful user profile we can load the app data
   useEffect(() => {
-    console.log("userProfile?", userProfile);
-    if (!userProfile) {
-      setNewDataStore(config.dataStore.user1, {});
-    }
-  }, []);
-
-  useEffect(() => {
-    if (userProfile) {
+    if (userProfile && sessionStore) {
+      console.log("useEffect userProfile?", userProfile);
       const layouts = getAppLayouts(userProfile, sessionStore);
       if (layouts) {
         setAppLayouts(layouts);
       }
     }
-  }, [userProfile]);
-  console.log("appLayouts", appLayouts);
+  }, [userProfile, sessionStore]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -58,6 +62,11 @@ const App = () => {
           return null;
         })}
       </StyledApp>
+      <Debug>
+        {JSON.stringify(userProfile)}
+        <br />
+        {JSON.stringify(sessionStore)}
+      </Debug>
     </ThemeProvider>
   );
 };
@@ -79,7 +88,8 @@ const getAppLayouts = (
     Object.entries(sessionStore).map(
       ([key, value]) =>
         ({
-          key: value,
+          key,
+          value,
         } as Field)
     );
 

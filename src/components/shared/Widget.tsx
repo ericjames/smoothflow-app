@@ -1,5 +1,7 @@
-import { Field, IWidgetProps, WidgetType } from "../../constants/types";
+import { Field, Fields, IWidgetProps, WidgetType } from "../../constants/types";
+import { useEffect, useState } from "react";
 
+import Button from "./Button";
 import TextEntry from "./TextEntry";
 import config from "../../constants/config";
 import styled from "styled-components";
@@ -23,34 +25,30 @@ const Widget = ({ widget }: IWidgetProps) => {
 export default Widget;
 
 const ListEntryWidget = ({ widget }: IWidgetProps) => {
-  const { generateFieldKey } = useDataStore();
+  const { sessionStore, userProfile, registerNewField } = useDataStore();
 
-  const fieldKey = generateFieldKey(widget.id);
+  // const [fields, setFields] = useState<Fields>(widget.fields);
 
-  const onChange = ({ key, value }: Field) => {
+  // const fieldKey = registerNewField(widget.id);
 
-    
+  // const onChange = ({ key, value }: { key: string; value: string }) => {};
+  const onButtonClick = () => {
+    registerNewField(widget.id);
   };
 
-  console.log("WIDGET", widget);
+  console.log("Widget Render Fields", widget.fields);
   return (
     <div>
-      <TextEntry
-        fieldKey={fieldKey}
-        editable={true}
-        initialValue={""}
-        onChange={onChange}
-      />
-
       {widget.fields?.map((field) => (
         <TextEntry
           key={field.key}
           fieldKey={field.key}
           initialValue={field.value}
           editable={true}
-          onChange={onChange}
+          // onChange={onChange}
         />
       ))}
+      <Button text={"Add Row"} onClick={onButtonClick} />
     </div>
   );
 };

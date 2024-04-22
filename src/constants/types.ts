@@ -75,7 +75,7 @@ export interface IDataStoreContext {
   ) => void | null;
   saveValue: (key: string, value: string) => boolean;
   getValue: (key: string) => string;
-  generateFieldKey: (widgetId: number) => string;
+  registerNewField: (widgetId: number) => string;
 }
 
 // UI Interfaces
@@ -109,7 +109,7 @@ export interface ITextEntryProps {
   fieldKey: string;
   initialValue: string;
   editable: boolean;
-  onChange: (field: Field) => void;
+  onChange?: (field: Field) => void;
 }
 
 export interface LayoutProps {
@@ -122,6 +122,11 @@ export interface IBlockProps {
 
 export interface IWidgetProps {
   widget: Widget;
+}
+
+export interface IButtonProps {
+  onClick: () => void;
+  text: string;
 }
 
 // Reusables

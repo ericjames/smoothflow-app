@@ -1,12 +1,13 @@
 # Smoothflow Task Management App
 
-React Typescript exploring Context API as state manager. A study on prop drilling, data persistence, and data modeling. Client browser localStorage acts as a local API database.
+React Typescript exploring Context Hook as state management. Client browser localStorage acts as a local API database.
 
-Data is decoupled into two sets:
+Data is stored in localStorage into two sets:
 
-- A userProfile that stores structured layout information. This data is not expected to change frequently and therefore is allowed to prop drill.
+- userProfile that stores structured layout information.
+- sessionStore that stores key-value data pairs.
 
-- General sessionStore that stores key-value data pairs such as text information that would be displayed in the structured layout. This data will change often and frequently and therefore is mutated mostly via Context (a la Redux).
+At the parent App level, userProfile and sessionStore data is converted and associated into usable UI types. All data changes come from Context only. Local state is avoided if at all possible, and render trees come from parent. For example if a new element is needed, the state is updated at Context which React then automatically triggers necessary renders where the state is referenced by a component.
 
 # User Stories
 

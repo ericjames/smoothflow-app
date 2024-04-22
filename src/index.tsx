@@ -10,9 +10,9 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 root.render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <DataStoreProvider storeId={config.dataStore.id}>
       <App />
     </DataStoreProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );

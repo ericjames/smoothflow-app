@@ -16,8 +16,12 @@ const TextEntry = ({
 
   const [text, setText] = useState(initialValue ?? "");
   useEffect(() => {
-    saveValue(fieldKey, text);
-    onChange({ key: fieldKey, value: text });
+    if (text) {
+      saveValue(fieldKey, text);
+      if (onChange) {
+        onChange({ key: fieldKey, value: text });
+      }
+    }
   }, [text]);
 
   return (

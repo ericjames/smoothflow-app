@@ -7,7 +7,7 @@ import { useDataStore } from "../../../context/DataStore";
 import { useEffect } from "react";
 
 const StyledWrapper = styled.section`
-  width: 1200px;
+  max-width: 1200px;
   margin: auto;
   padding: 2em;
 `;

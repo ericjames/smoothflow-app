@@ -1,4 +1,8 @@
-import { IDataStoreContext, SessionStore, UserProfile } from "../constants/types";
+import {
+  IDataStoreContext,
+  SessionStore,
+  UserProfile,
+} from "../constants/types";
 import {
   SetStateAction,
   createContext,
@@ -20,7 +24,7 @@ const DataStoreContext = createContext<IDataStoreContext | undefined>({
   getValue: () => {
     return "";
   },
-  generateFieldKey: () => {
+  registerNewField: () => {
     return "";
   },
 });
@@ -31,8 +35,6 @@ interface ProviderProps {
   children: any;
 }
 
-// This data store provider is agnostic to the data modeling
-// It is on UI components to synchronize data
 export const DataStoreProvider = ({ storeId, children }: ProviderProps) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [sessionStore, setSessionStore] = useState<SessionStore | null>(null);
@@ -44,14 +46,13 @@ export const DataStoreProvider = ({ storeId, children }: ProviderProps) => {
   useEffect(() => {
     if (storeId) {
       try {
-        const userProfile = localStorage.getItem(userProfileId);
-        const sessionStore = localStorage.getItem(sessionStoreId);
-        console.log("startup data store", userProfile, sessionStore);
-        if (userProfile) {
-          const json = JSON.parse(userProfile);
-          if (json) {
-            setUserProfile(json);
-          }
+        const dataUserProfile = localStorage.getItem(userProfileId);
+        if (dataUserProfile) {
+          setJSONData(dataUserProfile, setUserProfile);
+          const dataSessionStore = localStorage.getItem(sessionStoreId);
+          setJSONData(dataSessionStore, setSessionStore);
+        } else {
+          setNewDataStore(config.dataStore.user1, {});
         }
       } catch (e) {
         setError(`${e}`);
@@ -60,25 +61,37 @@ export const DataStoreProvider = ({ storeId, children }: ProviderProps) => {
     return () => {};
   }, []);
 
-  const generateFieldKey = (widgetId: number) => {
-    const wPrefix = config.dataStore.widgetIdPrefix;
-    const fPrefix = config.dataStore.fieldIdPrefix;
-    const wfKey = `${wPrefix}${widgetId}`;
-
-    const keys = sessionStore && Object.keys(sessionStore);
-    const wKeys = keys?.filter((key) => key.indexOf(wfKey) !== -1);
-
-    if (wKeys && wKeys.length > 0) {
-      const ids = wKeys
-        .map((key) =>
-          parseFloat(key.replace(config.dataStore.regexForFieldId, ""))
-        )
-        .sort();
-      const newId = ids[ids.length] + 1;
-      console.log("add field key", sessionStore, ids, newId);
-      return `${wPrefix}${widgetId}${fPrefix}${newId}`;
+  useEffect(() => {
+    console.log("Save to DB");
+    if (userProfile && sessionStore) {
+      console.log("With", userProfile, sessionStore);
+      saveAllData(userProfile, sessionStore);
     }
-    return `${wPrefix}${widgetId}${fPrefix}${1}`;
+  });
+
+  const setJSONData = (
+    jsonString: string | null,
+    setState: SetStateAction<any>
+  ) => {
+    if (jsonString) {
+      const json = JSON.parse(jsonString);
+      setState(json);
+    }
+  };
+
+  const saveFieldKeyToWidget = (fieldKey: string, widgetId: number) => {
+    const w = userProfile?.widgets.find((widget) => widget.id === widgetId);
+    if (w?.fieldKeys.indexOf(fieldKey) === -1) {
+      w?.fieldKeys.push(fieldKey);
+    }
+    setUserProfile(userProfile);
+  };
+
+  const registerNewField = (widgetId: number) => {
+    const fieldKey = generateFieldKey(widgetId);
+    saveFieldKeyToWidget(fieldKey, widgetId);
+    saveValue(fieldKey, "");
+    return fieldKey;
   };
 
   const setNewDataStore = (
@@ -86,7 +99,7 @@ export const DataStoreProvider = ({ storeId, children }: ProviderProps) => {
     sessionStore: SessionStore
   ) => {
     setUserProfile(userProfile);
-    saveAllData(userProfile, sessionStore);
+    setSessionStore(sessionStore);
   };
 
   const saveAllData = (
@@ -95,13 +108,15 @@ export const DataStoreProvider = ({ storeId, children }: ProviderProps) => {
   ) => {
     localStorage.setItem(userProfileId, JSON.stringify(userProfile));
     localStorage.setItem(sessionStoreId, JSON.stringify(sessionStore));
-    return true;
   };
 
-  const saveValue = (key: string, value: string): boolean => {
+  const saveValue = (fieldKey: string, value: string): boolean => {
     if (sessionStore) {
-      sessionStore[key] = value;
-      localStorage.setItem(sessionStoreId, JSON.stringify(sessionStore));
+      const newStore = { ...sessionStore };
+      newStore[fieldKey] = value;
+      setSessionStore(newStore);
+      console.log("saveValue", sessionStore, newStore, fieldKey, value);
+      // localStorage.setItem(sessionStoreId, JSON.stringify(sessionStore));
       return true;
     }
     return false;
@@ -125,6 +140,31 @@ export const DataStoreProvider = ({ storeId, children }: ProviderProps) => {
     }
   };
 
+  const generateFieldKey = (widgetId: number) => {
+    const wPrefix = config.dataStore.widgetIdPrefix;
+    const fPrefix = config.dataStore.fieldIdPrefix;
+    const wfKey = `${wPrefix}${widgetId}`;
+
+    const keys = sessionStore && Object.keys(sessionStore);
+    const wKeys = keys?.filter((key) => key.indexOf(wfKey) !== -1);
+
+    if (wKeys && wKeys.length > 0) {
+      const ids = wKeys
+        .map((key) => {
+          const num = key.replace(config.dataStore.regexForFieldId, "");
+          console.log("TEST1", num);
+          const int = parseFloat(num);
+          console.log("TEST2", int);
+          return int;
+        })
+        .sort();
+      const newId = ids[ids.length - 1] + 1;
+      console.log("add field key", sessionStore, ids, newId);
+      return `${wPrefix}${widgetId}${fPrefix}${newId}`;
+    }
+    return `${wPrefix}${widgetId}${fPrefix}${1}`;
+  };
+
   return (
     <DataStoreContext.Provider
       value={{
@@ -133,7 +173,7 @@ export const DataStoreProvider = ({ storeId, children }: ProviderProps) => {
         setNewDataStore,
         saveValue,
         getValue,
-        generateFieldKey,
+        registerNewField,
       }}
     >
       {children}
